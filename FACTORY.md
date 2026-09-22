@@ -58,3 +58,35 @@ IMPROVE / NEXT IDEA
 4. 必要な回答形式がある場合は明示する
 5. スクリーンショットは必要な場合のみ依頼する
 6. ChatGPT側でできる作業を編集長に依頼しない
+
+## 標準公開・計測基盤
+
+AI Factoryで制作するWebサービスは、原則として以下の構成を標準とする。
+
+ChatGPT（PM）
+↓
+GitHub（コード・バージョン管理）
+↓
+Cloudflare Workers（公開・自動デプロイ）
+↓
+Google Analytics 4（アクセス計測・分析）
+
+### 運用ルール
+
+- GitHubのmainブランチへのコミットをCloudflare Workersへ自動デプロイする
+- 公開後は必ず実サイトの動作確認を行う
+- GA4を導入し、実際にアクセスが計測されることを確認する
+- Cloudflare Workersの無料枠を基本とする
+- Lovableは必須ツールとせず、UI試作や開発速度を上げたい場合の補助ツールとして使用する
+- 有料サービスの導入は、必要性と収益性を確認したうえで編集長が判断する
+
+### 基盤動作確認
+
+2026-09-22
+`rental-report-checker` を使用して以下を確認済み。
+
+- GitHub → Cloudflare Workers 初回デプロイ
+- workers.devでの一般公開
+- Webアプリの正常動作
+- Cloudflare Workers → GA4 計測
+- GitHubへのコミット → Cloudflare Workers 自動再デプロイ
