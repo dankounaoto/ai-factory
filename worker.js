@@ -19,10 +19,10 @@ async function generate(env, style, referenceImage, phrase, genre = "ゴルフ",
   if (referenceImage) {
     const raw = referenceImage.includes(",") ? referenceImage.split(",")[1] : referenceImage;
     const bytes = Uint8Array.from(atob(raw), c => c.charCodeAt(0));
-    form.append("image", new Blob([bytes], {type:"image/png"}), "reference.png");
+    form.append("input_image_0", new Blob([bytes], {type:"image/png"}), "reference.png");
   }
-  form.append("width", "512");
-  form.append("height", "512");
+  form.append("width", "384");
+  form.append("height", "384");
   const encoded = new Response(form);
   const result = await env.AI.run(MODEL, { multipart: { body: encoded.body, contentType: encoded.headers.get("content-type") }});
   if (result?.image) return result.image;
@@ -40,11 +40,11 @@ export default {
         const { style, genre, series, referenceImage, instruction } = await request.json();
         if (!referenceImage || !instruction) return Response.json({error:"referenceImage and instruction required"},{status:400});
         const form = new FormData();
-        form.append("prompt", `Edit the supplied character image. Preserve the same character identity and overall style. Fix ONLY what the user requests: "${instruction}". Important: no text, no letters, no logos, anatomically correct body and hands unless the instruction says otherwise.`);
+        form.append("prompt", `Edit the supplied character image. Image 0 is the source of truth. Preserve the SAME character identity, face, clothing, niche/theme cues, props not mentioned by the user, and overall illustration style. The edited result MUST still unmistakably communicate the niche "${genre}". Fix ONLY what the user requests: "${instruction}". Important: no text, no letters, no logos, anatomically correct body and hands unless the instruction says otherwise.`);
         const raw = referenceImage.includes(",") ? referenceImage.split(",")[1] : referenceImage;
         const bytes = Uint8Array.from(atob(raw), c => c.charCodeAt(0));
-        form.append("image", new Blob([bytes], {type:"image/png"}), "reference.png");
-        form.append("width","512"); form.append("height","512");
+        form.append("input_image_0", new Blob([bytes], {type:"image/png"}), "reference.png");
+        form.append("width","384"); form.append("height","384");
         const encoded = new Response(form);
         const result = await env.AI.run(MODEL,{multipart:{body:encoded.body,contentType:encoded.headers.get("content-type")}});
         if(!result?.image) throw new Error("Image model returned no image");
@@ -56,10 +56,10 @@ export default {
         const { style, genre, series, referenceImage, phrases } = await request.json();
         const short = (phrases||[]).slice(0,40).join(" / ");
         const form = new FormData();
-        form.append("prompt", `Create ONE 8-column by 5-row character pose contact sheet containing exactly 40 small panels for a LINE sticker series about "${genre}". Use the supplied reference as the SAME character in every panel: same face, hair, clothing, proportions and illustration style. Show 40 varied poses/reactions inspired by these meanings: ${short}. ABSOLUTELY NO TEXT, letters, numbers, captions, logos or brands anywhere. This is a visual consistency storyboard only. Clear separation between panels, plain light background, anatomically correct hands and limbs.`);
+        form.append("prompt", `Create ONE 8-column by 5-row character pose contact sheet containing exactly 40 small panels for a LINE sticker series about "${genre}". Image 0 is the source of truth. Use the supplied reference as the SAME character in every panel: same face, hair, clothing, proportions and illustration style. Show 40 varied poses/reactions inspired by these meanings: ${short}. ABSOLUTELY NO TEXT, letters, numbers, captions, logos or brands anywhere. This is a visual consistency storyboard only. Clear separation between panels, plain light background, anatomically correct hands and limbs.`);
         const raw = referenceImage.includes(",") ? referenceImage.split(",")[1] : referenceImage;
         const bytes = Uint8Array.from(atob(raw), c=>c.charCodeAt(0));
-        form.append("image",new Blob([bytes],{type:"image/png"}),"reference.png");
+        form.append("input_image_0",new Blob([bytes],{type:"image/png"}),"reference.png");
         form.append("width","1024"); form.append("height","768");
         const encoded=new Response(form);
         const result=await env.AI.run(MODEL,{multipart:{body:encoded.body,contentType:encoded.headers.get("content-type")}});
