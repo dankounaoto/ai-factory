@@ -53,19 +53,19 @@ export default {
     }
     if (request.method === "POST" && url.pathname === "/api/sheet") {
       try {
-        const { style, genre, series, referenceImage, phrases } = await request.json();
-        const short = (phrases||[]).slice(0,40).join(" / ");
-        const form = new FormData();
-        form.append("prompt", `Create ONE 8-column by 5-row character pose contact sheet containing exactly 40 small panels for a LINE sticker series about "${genre}". Image 0 is the source of truth. Use the supplied reference as the SAME character in every panel: same face, hair, clothing, proportions and illustration style. Show 40 varied poses/reactions inspired by these meanings: ${short}. ABSOLUTELY NO TEXT, letters, numbers, captions, logos or brands anywhere. This is a visual consistency storyboard only. Clear separation between panels, plain light background, anatomically correct hands and limbs.`);
-        const raw = referenceImage.includes(",") ? referenceImage.split(",")[1] : referenceImage;
-        const bytes = Uint8Array.from(atob(raw), c=>c.charCodeAt(0));
+        const { genre, referenceImage, phrases, page = 0 } = await request.json();
+        const group=(phrases||[]).slice(page*10,page*10+10);
+        const form=new FormData();
+        form.append("prompt", `Create ONE contact sheet with EXACTLY 10 equal SQUARE panels arranged 5 columns x 2 rows. No merged cells, no wide cells, no missing cells. LINE sticker storyboard about "${genre}". Image 0 is the source of truth. SAME character in all 10 panels: identical face, hair, clothing, proportions and art style. Each panel shows one different pose/reaction inspired in order by: ${group.join(" / ")}. ABSOLUTELY NO text, letters, numbers, captions, logos or brands. Thin straight grid separators only. Plain light background. Anatomically correct hands and limbs. Every panel must have identical square dimensions.`);
+        const raw=referenceImage.includes(",")?referenceImage.split(",")[1]:referenceImage;
+        const bytes=Uint8Array.from(atob(raw),c=>c.charCodeAt(0));
         form.append("input_image_0",new Blob([bytes],{type:"image/png"}),"reference.png");
-        form.append("width","1024"); form.append("height","768");
+        form.append("width","1024"); form.append("height","410");
         const encoded=new Response(form);
         const result=await env.AI.run(MODEL,{multipart:{body:encoded.body,contentType:encoded.headers.get("content-type")}});
         if(!result?.image) throw new Error("Image model returned no image");
-        return Response.json({image:`data:image/png;base64,${result.image}`});
-      } catch(e){ return Response.json({error:String(e?.message||e)},{status:500}); }
+        return Response.json({page,image:`data:image/png;base64,${result.image}`});
+      } catch(e){return Response.json({error:String(e?.message||e)},{status:500});}
     }
     if (request.method === "POST" && url.pathname === "/api/phrases") {
       try {
