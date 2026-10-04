@@ -11,9 +11,9 @@ function promptFor(style) {
   return `Create ONE original male golf-lover character design for a LINE sticker series. ${styles[style] || styles.B}. Full body, white golf cap, green golf polo, golf club as a prop, centered single character, plain light neutral background, no text, no letters, no logo, no brand, no border, no frame, no copyrighted character, no resemblance to a real person. Consistent reusable character design, clear face and outfit, suitable as a reference for 40 everyday chat stickers.`;
 }
 
-async function generate(env, style) {
+async function generate(env, style, referenceImage, phrase) {
   const form = new FormData();
-  form.append("prompt", promptFor(style));
+  const base = promptFor(style);\n  const action = phrase ? ` Keep the SAME character identity, face, cap, green polo and illustration style. Create one sticker pose that naturally communicates this Japanese chat meaning: "${phrase}". Do NOT draw any text; text will be added later programmatically. Single character, expressive gesture, no logo, no border, no frame.` : "";\n  form.append("prompt", base + action);\n  if (referenceImage) {\n    const raw = referenceImage.includes(",") ? referenceImage.split(",")[1] : referenceImage;\n    const bytes = Uint8Array.from(atob(raw), c => c.charCodeAt(0));\n    form.append("image", new Blob([bytes], {type:"image/png"}), "reference.png");\n  }
   form.append("width", "512");
   form.append("height", "512");
   const encoded = new Response(form);
@@ -38,6 +38,6 @@ export default {
         return Response.json({error:String(e?.message || e)},{status:500});
       }
     }
-    return new Response("Not Found", { status: 404 });
+    if (request.method === "POST" && url.pathname === "/api/sticker") {\n      try {\n        const { style, referenceImage, phrase, index } = await request.json();\n        if (!referenceImage || !phrase) return Response.json({error:"referenceImage and phrase required"},{status:400});\n        const image = await generate(env, style || "B", referenceImage, phrase);\n        return Response.json({index,phrase,image:`data:image/png;base64,${image}`});\n      } catch (e) { return Response.json({error:String(e?.message || e)},{status:500}); }\n    }\n    return new Response("Not Found", { status: 404 });
   }
 };
