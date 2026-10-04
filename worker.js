@@ -14,7 +14,7 @@ function promptFor(style, genre = "ゴルフ", series = "") {
 async function generate(env, style, referenceImage, phrase, genre = "ゴルフ", series = "") {
   const form = new FormData();
   const base = promptFor(style, genre, series);
-  const action = phrase ? ` Keep the SAME character identity, face, cap, green polo and illustration style. Create one sticker pose that naturally communicates this Japanese chat meaning: "${phrase}". Do NOT draw any text; text will be added later programmatically. Single character, expressive gesture, no logo, no border, no frame.` : "";
+  const action = phrase ? ` Image 0 is the absolute source of truth. Keep EXACTLY the SAME character identity, face, hairstyle, body type, clothing, color palette and illustration style. Preserve the niche/theme cues for "${genre}". Create one sticker pose that naturally communicates this Japanese chat meaning: "${phrase}". ABSOLUTELY NO text, letters, Japanese glyphs, numbers, speech bubbles, signs, logos or captions anywhere; text will be added later programmatically. Single character, expressive gesture, no border, no frame. Anatomically correct hands and limbs.` : "";
   form.append("prompt", base + action);
   if (referenceImage) {
     const raw = referenceImage.includes(",") ? referenceImage.split(",")[1] : referenceImage;
@@ -60,7 +60,7 @@ export default {
         const raw=referenceImage.includes(",")?referenceImage.split(",")[1]:referenceImage;
         const bytes=Uint8Array.from(atob(raw),c=>c.charCodeAt(0));
         form.append("input_image_0",new Blob([bytes],{type:"image/png"}),"reference.png");
-        form.append("width","1024"); form.append("height","410");
+        form.append("width","768"); form.append("height","320");
         const encoded=new Response(form);
         const result=await env.AI.run(MODEL,{multipart:{body:encoded.body,contentType:encoded.headers.get("content-type")}});
         if(!result?.image) throw new Error("Image model returned no image");
