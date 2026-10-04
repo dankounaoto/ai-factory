@@ -13,7 +13,14 @@ function promptFor(style) {
 
 async function generate(env, style, referenceImage, phrase) {
   const form = new FormData();
-  const base = promptFor(style);\n  const action = phrase ? ` Keep the SAME character identity, face, cap, green polo and illustration style. Create one sticker pose that naturally communicates this Japanese chat meaning: "${phrase}". Do NOT draw any text; text will be added later programmatically. Single character, expressive gesture, no logo, no border, no frame.` : "";\n  form.append("prompt", base + action);\n  if (referenceImage) {\n    const raw = referenceImage.includes(",") ? referenceImage.split(",")[1] : referenceImage;\n    const bytes = Uint8Array.from(atob(raw), c => c.charCodeAt(0));\n    form.append("image", new Blob([bytes], {type:"image/png"}), "reference.png");\n  }
+  const base = promptFor(style);
+  const action = phrase ? ` Keep the SAME character identity, face, cap, green polo and illustration style. Create one sticker pose that naturally communicates this Japanese chat meaning: "${phrase}". Do NOT draw any text; text will be added later programmatically. Single character, expressive gesture, no logo, no border, no frame.` : "";
+  form.append("prompt", base + action);
+  if (referenceImage) {
+    const raw = referenceImage.includes(",") ? referenceImage.split(",")[1] : referenceImage;
+    const bytes = Uint8Array.from(atob(raw), c => c.charCodeAt(0));
+    form.append("image", new Blob([bytes], {type:"image/png"}), "reference.png");
+  }
   form.append("width", "512");
   form.append("height", "512");
   const encoded = new Response(form);
@@ -38,6 +45,14 @@ export default {
         return Response.json({error:String(e?.message || e)},{status:500});
       }
     }
-    if (request.method === "POST" && url.pathname === "/api/sticker") {\n      try {\n        const { style, referenceImage, phrase, index } = await request.json();\n        if (!referenceImage || !phrase) return Response.json({error:"referenceImage and phrase required"},{status:400});\n        const image = await generate(env, style || "B", referenceImage, phrase);\n        return Response.json({index,phrase,image:`data:image/png;base64,${image}`});\n      } catch (e) { return Response.json({error:String(e?.message || e)},{status:500}); }\n    }\n    return new Response("Not Found", { status: 404 });
+    if (request.method === "POST" && url.pathname === "/api/sticker") {
+      try {
+        const { style, referenceImage, phrase, index } = await request.json();
+        if (!referenceImage || !phrase) return Response.json({error:"referenceImage and phrase required"},{status:400});
+        const image = await generate(env, style || "B", referenceImage, phrase);
+        return Response.json({index,phrase,image:`data:image/png;base64,${image}`});
+      } catch (e) { return Response.json({error:String(e?.message || e)},{status:500}); }
+    }
+    return new Response("Not Found", { status: 404 });
   }
 };
