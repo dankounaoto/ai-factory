@@ -1,0 +1,8 @@
+name = "ai-sticker-factory"
+main = "worker.js"
+compatibility_date = "2026-10-04"
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = true
