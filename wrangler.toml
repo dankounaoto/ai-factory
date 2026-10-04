@@ -2,6 +2,9 @@ name = "ai-sticker-factory"
 main = "worker.js"
 compatibility_date = "2026-10-04"
 
+[ai]
+binding = "AI"
+
 [[rules]]
 type = "Text"
 globs = ["**/*.html"]
